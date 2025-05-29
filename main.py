@@ -15,24 +15,20 @@ conn = psycopg2.connect(database="nascar", user="juuxi", password="111", host="l
 
 cursor = conn.cursor()
 
-# Создаем таблицу Users
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Users (
-    id INTEGER PRIMARY KEY,
-    username VARCHAR(20) NOT NULL,
-    age INTEGER
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS drivers (
+    place INTEGER PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    points INTEGER,
+    team VARCHAR(40)
 )
-''')
-
-cursor.execute("""
-    INSERT INTO users (id, username, age)
-    VALUES (1, 'juuxi', 19)
 """)
 
-cursor.execute("""
-    INSERT INTO users (id, username, age)
-    VALUES (2, 'Z', 21)
-""")
+for i in range(len(names)):
+    cursor.execute("""
+        INSERT INTO drivers (place, name, points, team)
+        VALUES (%s, %s, %s, %s)
+    """, (i, names[i], points[i], 'None'))
 
 # Сохраняем изменения и закрываем соединение
 conn.commit()
