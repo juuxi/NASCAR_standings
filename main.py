@@ -1,7 +1,17 @@
 import psycopg2
+import csv
 
-conn = psycopg2.connect(database="postgres", user="postgres", password="111", host="localhost", port=5432)
 
+names = []
+points = []
+
+with open('scoreboard.csv', newline='') as f:
+    reader = csv.reader(f)
+    for row in reader:
+        names.append(row[0])
+        points.append(row[1])
+
+conn = psycopg2.connect(database="nascar", user="juuxi", password="111", host="localhost", port=5432)
 
 cursor = conn.cursor()
 

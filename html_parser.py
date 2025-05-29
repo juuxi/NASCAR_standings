@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import csv
 
 url = "https://www.espn.com/racing/standings"
 
@@ -31,4 +32,10 @@ while row != None:
     row = row.find_next('td', class_='sortcell')
 
 for i in range(len(names)):
-    print(names[i].text, points[i].text)
+    names[i] = names[i].text
+    points[i] = points[i].text
+
+with open('scoreboard.csv', 'w', newline='') as f:
+    writer = csv.writer(f)
+    to_write = [list(pair) for pair in zip(names, points)]
+    writer.writerows(to_write)
