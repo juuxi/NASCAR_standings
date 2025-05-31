@@ -4,12 +4,18 @@ import csv
 
 names = []
 points = []
+teams = []
 
 with open('scoreboard.csv', newline='') as f:
     reader = csv.reader(f)
     for row in reader:
         names.append(row[0])
         points.append(row[1])
+
+with open('team-driver.csv', newline='') as f:
+    reader = csv.reader(f)
+    for row in reader:
+        teams.append(row[1])
 
 conn = psycopg2.connect(database="nascar", user="juuxi", password="111", host="localhost", port=5432)
 
@@ -28,11 +34,11 @@ cursor.execute("""
 )
 """)
 
-for name, point in zip(names, points):
+for name, point, team in zip(names, points, teams):
     cursor.execute("""
         INSERT INTO drivers (name, points, team)
         VALUES (%s, %s, %s)
-    """, (name, point, 'None'))
+    """, (name, point, team))
 
 # Сохраняем изменения и закрываем соединение
 conn.commit()
