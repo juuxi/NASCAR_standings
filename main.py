@@ -40,6 +40,25 @@ for name, point, team in zip(names, points, teams):
         VALUES (%s, %s, %s)
     """, (name, point, team))
 
+cursor.execute("""
+    DROP TABLE IF EXISTS teams
+""")
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS teams (
+    place SERIAL PRIMARY KEY,
+    name  VARCHAR(40),
+    points INTEGER               
+)
+""")
+
+cursor.execute("""
+    INSERT INTO teams (name, points)
+    SELECT team, SUM(points) AS points FROM drivers
+    GROUP BY team
+    ORDER BY points DESC
+""")
+
 # Сохраняем изменения и закрываем соединение
 conn.commit()
 conn.close()
