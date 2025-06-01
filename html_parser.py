@@ -93,3 +93,37 @@ with open('team-driver.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     to_write = [list(pair) for pair in zip(names, teams)]
     writer.writerows(to_write)
+
+#team-manufacturer ratio
+soup = BeautifulSoup(page.text, "html.parser")
+
+table = soup.find('table')
+
+manufacturer = table.find('th')
+while manufacturer.text[:-1] != "References":
+    manufacturer = manufacturer.find_next('th')
+
+manufacturer_team = {"Chevrolet": "", "Ford":"", "Toyota":""}
+for j in range(2):
+    for i in range(3):
+        manufacturer = manufacturer.find_next('th')
+        team_counter = int(manufacturer['rowspan'])
+
+        team = manufacturer.find_next('td', {"style" : "text-align:center;"})
+        while team_counter > 0 and team:
+            if team.has_attr('rowspan'):
+                team_counter -= int(team['rowspan'])
+            else :
+                team_counter -= 1
+            if team.text.__contains__('['):
+                team.string = team.text[:-9]
+            manufacturer_team[manufacturer.text[:-1]] += team.text[:-1] + '\n'
+            team = team.find_next('td', {"style" : "text-align:center;"})
+    if j == 0:
+        while manufacturer.text[:-1] != "References":
+            manufacturer = manufacturer.find_next('th')
+
+with open('team-manufacturer.csv', 'w', newline='') as f:
+    writer = csv.writer(f)
+    for key, value in manufacturer_team.items():
+       writer.writerow([key, value])
