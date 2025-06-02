@@ -88,6 +88,21 @@ cursor.execute("""
 
 print(cursor.fetchall())
 
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS manufacturers (
+    place SERIAL PRIMARY KEY,
+    name VARCHAR(15),
+    points INTEGER
+    )
+""")
+
+cursor.execute("""
+    INSERT INTO manufacturers (name, points)
+    SELECT manufacturer, SUM(points) AS points FROM teams
+    GROUP BY manufacturer
+    ORDER BY points DESC
+""")
+
 # Сохраняем изменения и закрываем соединение
 conn.commit()
 conn.close()
