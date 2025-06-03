@@ -54,8 +54,12 @@ table = soup.find('table')
 teams = [None] * len(names)
 
 team = table.find('td')
+first_table_ended_flag = False
 
 while team:
+    #костыль
+    if team.text[:-1] == "Beard Motorsports":
+        first_table_ended_flag = True
     if team.text.__contains__("["):
         team.string = team.text[:-9]
 
@@ -65,16 +69,22 @@ while team:
             while not number.text[0].isdigit():
                 number = number.find_next('td')
 
-            driver = number.find_next('td')
+            if first_table_ended_flag and i != 0:
+                driver = driver.find_next('tr').find_next('td')
+                #костыль
+                if team.text[:-1] == "Trackhouse Racing":
+                    driver = driver.find_next('td')
+                    driver.string = "Helio Castroneves\n"
+            else:    
+                driver = number.find_next('td')
 
             if driver.text.__contains__("(R)"):
                 driver.string = driver.text[:-4]
             if driver.text.__contains__("Daniel"):
                 driver.string = "Daniel Suarez\n"
-            if driver.text.__contains__("Alfredo") or driver.text.__contains__("McLeod") or driver.text.__contains__("Yeley") or driver.text.__contains__("Hill") or driver.text.__contains__("Zilisch"):
-                continue
-            if driver.text.__contains__("Chandler Smith"):
-                continue   
+            if not driver.text[:-1] in names:
+                number = number.find_next('td')
+                continue  
 
             teams[names.index(driver.text[:-1])] = team.text[:-1]
 
@@ -82,12 +92,16 @@ while team:
 
     else:
         driver = number.find_next('td')
-        if driver.text.__contains__("Allgaier") or driver.text.__contains__("Brown") or driver.text.__contains__("Heim"):
+        if not driver.text[:-1] in names:
             team = team.find_next('td', {"style" : "text-align:center;"})
             continue
         teams[names.index(driver.text[:-1])] = team.text[:-1]
 
-    team = team.find_next('td', {"style" : "text-align:center;"})
+    #костыль
+    if team.text[:-1] == "Legacy Motor Club" and first_table_ended_flag:
+        team = team.find_next('td', {"style" : "text-align:center"})
+    else:
+        team = team.find_next('td', {"style" : "text-align:center;"})
 
 with open('team-driver.csv', 'w', newline='') as f:
     writer = csv.writer(f)
@@ -122,6 +136,9 @@ for j in range(2):
     if j == 0:
         while manufacturer.text[:-1] != "References":
             manufacturer = manufacturer.find_next('th')
+
+#костыль
+manufacturer_team["Toyota"] += "Tricon Garage" + '\n'
 
 with open('team-manufacturer.csv', 'w', newline='') as f:
     writer = csv.writer(f)

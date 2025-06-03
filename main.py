@@ -89,6 +89,10 @@ cursor.execute("""
 print(cursor.fetchall())
 
 cursor.execute("""
+    DROP TABLE IF EXISTS manufacturers
+""")
+
+cursor.execute("""
     CREATE TABLE IF NOT EXISTS manufacturers (
     place SERIAL PRIMARY KEY,
     name VARCHAR(15),
