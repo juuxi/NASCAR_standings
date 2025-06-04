@@ -26,23 +26,16 @@ conn = psycopg2.connect(database="nascar", user="juuxi", password="111", host="l
 cursor = conn.cursor()
 
 cursor.execute("""
-    DROP TABLE IF EXISTS drivers
+    DROP TABLE IF EXISTS manufacturers
 """)
 
 cursor.execute("""
-    CREATE TABLE IF NOT EXISTS drivers (
+    CREATE TABLE IF NOT EXISTS manufacturers (
     place SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    points INTEGER,
-    team VARCHAR(40)
-)
+    name VARCHAR(15),
+    points INTEGER
+    )
 """)
-
-for name, point, team in zip(names, points, teams):
-    cursor.execute("""
-        INSERT INTO drivers (name, points, team)
-        VALUES (%s, %s, %s)
-    """, (name, point, team))
 
 cursor.execute("""
     DROP TABLE IF EXISTS teams
@@ -53,9 +46,36 @@ cursor.execute("""
     place SERIAL PRIMARY KEY,
     name  VARCHAR(40),
     points INTEGER,  
-    manufacturer VARCHAR(15)             
+    manufacturer VARCHAR(15),
+    manufacturer_id INTEGER,
+    CONSTRAINT fk_manufacturer
+        FOREIGN KEY (manufacturer_id)
+        REFERENCES manufacturers(place)    
 )
 """)
+
+cursor.execute("""
+    DROP TABLE IF EXISTS drivers
+""")
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS drivers (
+    place SERIAL PRIMARY KEY,
+   name VARCHAR(50) NOT NULL,
+    points INTEGER,
+    team VARCHAR(40),
+    team_id INTEGER,
+    CONSTRAINT fk_team
+        FOREIGN KEY (team_id)
+        REFERENCES teams(place)
+)
+""")
+
+for name, point, team in zip(names, points, teams):
+    cursor.execute("""
+        INSERT INTO drivers (name, points, team)
+        VALUES (%s, %s, %s)
+    """, (name, point, team))
 
 cursor.execute("""
     INSERT INTO teams (name, points)
@@ -89,22 +109,24 @@ cursor.execute("""
 print(cursor.fetchall())
 
 cursor.execute("""
-    DROP TABLE IF EXISTS manufacturers
-""")
-
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS manufacturers (
-    place SERIAL PRIMARY KEY,
-    name VARCHAR(15),
-    points INTEGER
-    )
-""")
-
-cursor.execute("""
     INSERT INTO manufacturers (name, points)
     SELECT manufacturer, SUM(points) AS points FROM teams
     GROUP BY manufacturer
     ORDER BY points DESC
+""")
+
+cursor.execute("""
+    UPDATE drivers 
+    SET team_id = teams.place
+    FROM teams 
+    WHERE drivers.team = teams.name
+""")
+
+cursor.execute("""
+    UPDATE teams 
+    SET manufacturer_id = manufacturers.place
+    FROM manufacturers 
+    WHERE teams.manufacturer = manufacturers.name
 """)
 
 # Сохраняем изменения и закрываем соединение
